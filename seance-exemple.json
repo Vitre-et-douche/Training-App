@@ -1,0 +1,36 @@
+{
+  "nom": "Renfo A - Mollets / Tibial postérieur",
+  "date": "2026-10-26",
+  "exercices": [
+    {
+      "id": "inversion",
+      "nom": "Inversion bande élastique",
+      "type": "reps",
+      "repos_s": 60,
+      "series": [
+        { "reps": 100, "charge": "Orange" },
+        { "reps": 100, "charge": "Orange" }
+      ]
+    },
+    {
+      "id": "heel-raise",
+      "nom": "Heel raises talons joints",
+      "type": "reps",
+      "repos_s": 90,
+      "series": [
+        { "reps": 15, "charge": "poids du corps" },
+        { "reps": 15, "charge": "poids du corps" },
+        { "reps": 15, "charge": "poids du corps" }
+      ]
+    },
+    {
+      "id": "test-heel-raise",
+      "nom": "Test single-leg heel raise",
+      "type": "test",
+      "repos_s": 120,
+      "series": [
+        { "reps": 50, "charge": "poids du corps" }
+      ]
+    }
+  ]
+}

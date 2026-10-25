@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Muscu</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 16px 16px 120px; background: #111; color: #eee; }
+    h1 { font-size: 1.3rem; margin: 0 0 4px; }
+    .date { color: #888; margin-bottom: 16px; }
+    .exo { background: #1d1d1d; border-radius: 12px; padding: 12px; margin-bottom: 14px; }
+    .exo h2 { font-size: 1.05rem; margin: 0 0 4px; }
+    .repos { color: #888; font-size: 0.85rem; margin-bottom: 8px; }
+    .serie { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+    .serie input { width: 70px; padding: 8px; border-radius: 8px; border: 1px solid #444;
+                   background: #111; color: #eee; font-size: 1rem; }
+    .serie input.charge { width: 110px; }
+    .serie button { padding: 8px 12px; border-radius: 8px; border: none; background: #333;
+                    color: #eee; font-size: 1rem; }
+    .serie.fait button { background: #2e7d32; }
+    .labels { color: #888; font-size: 0.75rem; display: flex; gap: 6px; }
+
+    /* Barre du chrono */
+    #chrono { position: fixed; left: 0; right: 0; bottom: 0; background: #222; border-top: 2px solid #444;
+              padding: 12px 16px; display: none; align-items: center; justify-content: space-between; gap: 8px; }
+    #chrono.actif { display: flex; }
+    #chrono.fini { background: #2e7d32; }
+    #temps { font-size: 2rem; font-variant-numeric: tabular-nums; font-weight: bold; }
+    #chrono button { padding: 10px 12px; border-radius: 8px; border: none; background: #444;
+                     color: #eee; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <h1 id="titre">Chargement...</h1>
+  <div class="date" id="date"></div>
+  <div id="exercices"></div>
+
+  <div id="chrono">
+    <div id="temps">0:00</div>
+    <div>
+      <button id="moins">-15s</button>
+      <button id="plus">+15s</button>
+      <button id="stop">Passer</button>
+    </div>
+  </div>
+
+  <script>
+    // ---------- CHRONO DE REPOS ----------
+    let finRepos = null;
+    let intervalle = null;
+    let wakeLock = null;
+    let audio = null;
+
+    const barre = document.getElementById("chrono");
+    const affichageTemps = document.getElementById("temps");
+
+    function formater(secondes) {
+      const m = Math.floor(secondes / 60);
+      const s = secondes % 60;
+      return m + ":" + String(s).padStart(2, "0");
+    }
+
+    async function garderEcranAllume() {
+      try {
+        if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen");
+      } catch (e) { /* pas grave si ça échoue */ }
+    }
+
+    function relacherEcran() {
+      if (wakeLock) { wakeLock.release(); wakeLock = null; }
+    }
+
+    function bip() {
+      try {
+        if (!audio) audio = new AudioContext();
+        const osc = audio.createOscillator();
+        osc.frequency.value = 880;
+        osc.connect(audio.destination);
+        osc.start();
+        osc.stop(audio.currentTime + 0.4);
+      } catch (e) {}
+    }
+
+    function demarrerRepos(secondes) {
+      if (!audio) { try { audio = new AudioContext(); } catch (e) {} }
+      finRepos = Date.now() + secondes * 1000;
+      barre.classList.add("actif");
+      barre.classList.remove("fini");
+      clearInterval(intervalle);
+      intervalle = setInterval(tic, 250);
+      tic();
+      garderEcranAllume();
+    }
+
+    function tic() {
+      const restant = Math.ceil((finRepos - Date.now()) / 1000);
+      if (restant <= 0) {
+        terminerRepos();
+      } else {
+        affichageTemps.textContent = formater(restant);
+      }
+    }
+
+    function terminerRepos() {
+      clearInterval(intervalle);
+      affichageTemps.textContent = "Go !";
+      barre.classList.add("fini");
+      if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
+      bip();
+      relacherEcran();
+      setTimeout(arreterRepos, 4000);
+    }
+
+    function arreterRepos() {
+      clearInterval(intervalle);
+      barre.classList.remove("actif", "fini");
+      relacherEcran();
+    }
+
+    document.getElementById("plus").addEventListener("click", () => { finRepos += 15000; tic(); });
+    document.getElementById("moins").addEventListener("click", () => { finRepos -= 15000; tic(); });
+    document.getElementById("stop").addEventListener("click", arreterRepos);
+
+    // ---------- AFFICHAGE DE LA SÉANCE ----------
+    async function charger() {
+      const reponse = await fetch("seance-exemple.json");
+      const seance = await reponse.json();
+      afficher(seance);
+    }
+
+    function afficher(seance) {
+      document.getElementById("titre").textContent = seance.nom;
+      document.getElementById("date").textContent = seance.date;
+
+      const conteneur = document.getElementById("exercices");
+      conteneur.innerHTML = "";
+
+      for (const exo of seance.exercices) {
+        const bloc = document.createElement("div");
+        bloc.className = "exo";
+        bloc.innerHTML = `
+          <h2>${exo.nom}</h2>
+          <div class="repos">Repos : ${exo.repos_s} s</div>
+          <div class="labels">
+            <span style="width:110px">Charge</span>
+            <span style="width:70px">Reps</span>
+            <span style="width:70px">Douleur</span>
+          </div>
+        `;
+
+        for (const s of exo.series) {
+          const ligne = document.createElement("div");
+          ligne.className = "serie";
+          ligne.innerHTML = `
+            <input class="charge" type="text" value="${s.charge}">
+            <input type="number" value="${s.reps}">
+            <input type="number" min="0" max="10" placeholder="0-10">
+            <button>OK</button>
+          `;
+          ligne.querySelector("button").addEventListener("click", () => {
+            ligne.classList.toggle("fait");
+            // Le chrono démarre seulement quand on VALIDE la série
+            if (ligne.classList.contains("fait")) {
+              demarrerRepos(exo.repos_s);
+            }
+          });
+          bloc.appendChild(ligne);
+        }
+        conteneur.appendChild(bloc);
+      }
+    }
+
+    charger();
+  </script>
+</body>
+</html>
