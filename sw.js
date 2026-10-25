@@ -1,4 +1,4 @@
-const NOM_CACHE = "muscu-v3";
+const NOM_CACHE = "muscu-v4";
 const FICHIERS = [
   "./", "./index.html", "./manifest.json", "./programme.json",
   "./seance-a.json", "./seance-b.json", "./seance-c.json",
