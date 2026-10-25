@@ -1,0 +1,165 @@
+{
+  "nom": "B - Upper: push & pull",
+  "exercices": [
+    {
+      "id": "bench-press",
+      "nom": "Bench press",
+      "type": "force",
+      "repos_s": 150,
+      "note": "RPE 7-8, controlled descent, 1 s pause on the chest.",
+      "series": [
+        {
+          "reps": 6,
+          "kg": null
+        },
+        {
+          "reps": 6,
+          "kg": null
+        },
+        {
+          "reps": 6,
+          "kg": null
+        },
+        {
+          "reps": 6,
+          "kg": null
+        }
+      ]
+    },
+    {
+      "id": "pull-up",
+      "nom": "Pull-up",
+      "type": "force",
+      "repos_s": 120,
+      "note": "Kg = added weight (0 = bodyweight, vest = 10). Dead hang to chin over the bar.",
+      "series": [
+        {
+          "reps": 5,
+          "kg": 0
+        },
+        {
+          "reps": 5,
+          "kg": 0
+        },
+        {
+          "reps": 5,
+          "kg": 0
+        },
+        {
+          "reps": 5,
+          "kg": 0
+        }
+      ]
+    },
+    {
+      "id": "barbell-row",
+      "nom": "Barbell row",
+      "type": "force",
+      "repos_s": 120,
+      "note": "Torso about 45 degrees, bar to the lower ribs, no momentum.",
+      "series": [
+        {
+          "reps": 8,
+          "kg": null
+        },
+        {
+          "reps": 8,
+          "kg": null
+        },
+        {
+          "reps": 8,
+          "kg": null
+        }
+      ]
+    },
+    {
+      "id": "ohp",
+      "nom": "Overhead press",
+      "type": "force",
+      "repos_s": 120,
+      "note": "Standing, glutes tight.",
+      "series": [
+        {
+          "reps": 8,
+          "kg": null
+        },
+        {
+          "reps": 8,
+          "kg": null
+        },
+        {
+          "reps": 8,
+          "kg": null
+        }
+      ]
+    },
+    {
+      "id": "ring-dip",
+      "nom": "Ring dips (or bench dips)",
+      "type": "force",
+      "repos_s": 120,
+      "note": "Kg = added weight (0 = bodyweight). Use bench dips if the rings are too unstable.",
+      "series": [
+        {
+          "reps": 8,
+          "kg": 0
+        },
+        {
+          "reps": 8,
+          "kg": 0
+        },
+        {
+          "reps": 8,
+          "kg": 0
+        }
+      ]
+    },
+    {
+      "id": "leg-raise",
+      "nom": "Hanging leg raise",
+      "type": "reps",
+      "repos_s": 60,
+      "series": [
+        {
+          "reps": 10
+        },
+        {
+          "reps": 10
+        },
+        {
+          "reps": 10
+        }
+      ]
+    },
+    {
+      "id": "side-plank",
+      "nom": "Side plank",
+      "type": "duree",
+      "repos_s": 45,
+      "note": "Set 1 = left side, set 2 = right side.",
+      "series": [
+        {
+          "duree_s": 40
+        },
+        {
+          "duree_s": 40
+        }
+      ]
+    },
+    {
+      "id": "heel-raise",
+      "nom": "Heel raises, feet together",
+      "type": "reps",
+      "repos_s": 45,
+      "note": "Bodyweight, slow, full range. Part of the calf protocol (build toward 50).",
+      "series": [
+        {
+          "reps": 25
+        },
+        {
+          "reps": 25
+        }
+      ]
+    }
+  ]
+}

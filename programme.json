@@ -1,0 +1,17 @@
+{
+  "nom": "Winter block 1",
+  "seances": [
+    {
+      "fichier": "seance-a.json",
+      "titre": "A - Lower: squat & posterior chain"
+    },
+    {
+      "fichier": "seance-b.json",
+      "titre": "B - Upper: push & pull"
+    },
+    {
+      "fichier": "seance-c.json",
+      "titre": "C - Lower: single-leg, pull & ankle"
+    }
+  ]
+}

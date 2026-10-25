@@ -1,6 +1,6 @@
 {
-  "name": "Muscu",
-  "short_name": "Muscu",
+  "name": "Training",
+  "short_name": "Training",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

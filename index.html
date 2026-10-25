@@ -1,53 +1,70 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Muscu</title>
+  <title>Training</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#111111">
   <style>
-    body { font-family: system-ui, sans-serif; margin: 0; padding: 0 16px 120px; background: #111; color: #eee; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 0 12px 120px; background: #111; color: #eee; }
     nav { display: flex; gap: 8px; padding: 12px 0; position: sticky; top: 0; background: #111; z-index: 5; }
-    nav button { flex: 1; padding: 10px; border-radius: 8px; border: none; background: #222; color: #eee; font-size: 1rem; }
+    nav button { flex: 1; padding: 12px; border-radius: 8px; border: none; background: #222; color: #eee; font-size: 1rem; }
     nav button.actif { background: #2e7d32; }
     h1 { font-size: 1.3rem; margin: 8px 0 4px; }
     .date { color: #888; margin-bottom: 16px; }
+
     .exo { background: #1d1d1d; border-radius: 12px; padding: 12px; margin-bottom: 14px; }
     .exo h2 { font-size: 1.05rem; margin: 0 0 4px; }
-    .repos { color: #888; font-size: 0.85rem; margin-bottom: 8px; }
-    .serie { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
-    .serie input { width: 70px; padding: 8px; border-radius: 8px; border: 1px solid #444;
-                   background: #111; color: #eee; font-size: 1rem; }
-    .serie input.charge { width: 110px; }
-    .serie button { padding: 8px 12px; border-radius: 8px; border: none; background: #333;
+    .repos { color: #888; font-size: 0.85rem; margin-bottom: 4px; }
+    .note { color: #aaa; font-size: 0.8rem; margin-bottom: 6px; line-height: 1.35; }
+    .derniere { color: #6fb36f; font-size: 0.8rem; margin-bottom: 8px; }
+
+    /* Shared grid for column titles and set rows (columns depend on exercise type) */
+    .labels, .serie { display: grid; gap: 6px; align-items: center; }
+    .t-force { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 64px; }
+    .t-reps, .t-duree { grid-template-columns: minmax(0, 1fr) 64px; }
+    .edit.t-force { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 48px; }
+    .edit.t-reps, .edit.t-duree { grid-template-columns: minmax(0, 1fr) 48px; }
+
+    .labels { color: #888; font-size: 0.75rem; margin-bottom: 4px; }
+    .labels span { text-align: center; }
+    .serie { margin-bottom: 8px; }
+    .serie input { width: 100%; min-width: 0; padding: 12px 6px; border-radius: 8px; border: 1px solid #444;
+                   background: #111; color: #eee; font-size: 1.05rem; text-align: center; }
+    .serie button { width: 100%; padding: 12px 0; border-radius: 8px; border: none; background: #333;
                     color: #eee; font-size: 1rem; }
     .serie.fait button { background: #2e7d32; }
-    .labels { color: #888; font-size: 0.75rem; display: flex; gap: 6px; }
+
     .action { display: block; width: 100%; padding: 14px; margin: 10px 0; border-radius: 10px; border: none;
               background: #333; color: #eee; font-size: 1rem; }
     .action.principal { background: #2e7d32; }
     .action.danger { background: #7d2e2e; }
-    .vide { color: #888; text-align: center; margin: 40px 0 20px; }
+    .vide { color: #888; text-align: center; margin: 30px 0 14px; }
+    .sous-titre { color: #888; font-size: 0.85rem; margin: 18px 0 4px; }
+
     .histo { background: #1d1d1d; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
     .histo h3 { margin: 0 0 2px; font-size: 1rem; }
     .histo .meta { color: #888; font-size: 0.8rem; margin-bottom: 8px; }
-    .histo .ligne { font-size: 0.9rem; margin-bottom: 4px; }
+    .histo .ligne { font-size: 0.9rem; margin-bottom: 6px; }
     .histo .detail { color: #aaa; }
     #vue-historique { display: none; }
 
-    /* Mode modification */
-    .champ { width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px; border: 1px solid #444;
+    /* Edit mode */
+    .champ { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #444;
              background: #111; color: #eee; font-size: 1rem; margin-bottom: 8px; }
     .ligne-exo { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
-    .ligne-exo .champ { margin-bottom: 0; flex: 1; }
-    .mini { padding: 8px 10px; border-radius: 8px; border: none; background: #333; color: #eee; font-size: 1rem; }
+    .ligne-exo .champ { margin-bottom: 0; flex: 1; min-width: 0; }
+    .mini { padding: 10px 12px; border-radius: 8px; border: none; background: #333; color: #eee; font-size: 1rem; }
     .mini.danger { background: #7d2e2e; }
     .mini:disabled { opacity: 0.3; }
+    .serie.edit .mini { width: 100%; padding: 12px 0; }
     .repos-edit { display: flex; align-items: center; gap: 8px; color: #888; font-size: 0.85rem; margin-bottom: 8px; }
-    .repos-edit input { width: 80px; padding: 8px; border-radius: 8px; border: 1px solid #444;
+    .repos-edit input { width: 90px; padding: 10px; border-radius: 8px; border: 1px solid #444;
                         background: #111; color: #eee; font-size: 1rem; }
 
+    /* Rest timer bar */
     #chrono { position: fixed; left: 0; right: 0; bottom: 0; background: #222; border-top: 2px solid #444;
               padding: 12px 16px; display: none; align-items: center; justify-content: space-between; gap: 8px; }
     #chrono.actif { display: flex; }
@@ -59,21 +76,21 @@
 </head>
 <body>
   <nav>
-    <button id="nav-seance" class="actif">Séance</button>
-    <button id="nav-histo">Historique</button>
+    <button id="nav-seance" class="actif">Workout</button>
+    <button id="nav-histo">History</button>
   </nav>
 
-  <!-- VUE SÉANCE -->
+  <!-- WORKOUT VIEW -->
   <div id="vue-seance">
     <div id="contenu-seance"></div>
-    <button class="action" id="btn-import">Importer une séance (fichier JSON)</button>
+    <button class="action" id="btn-import">Import a workout (JSON file)</button>
     <input type="file" id="fichier-import" accept=".json,application/json" style="display:none">
   </div>
 
-  <!-- VUE HISTORIQUE -->
+  <!-- HISTORY VIEW -->
   <div id="vue-historique">
     <div id="contenu-histo"></div>
-    <button class="action" id="btn-export">Exporter l'historique (fichier JSON)</button>
+    <button class="action" id="btn-export">Export history (JSON file)</button>
   </div>
 
   <div id="chrono">
@@ -81,12 +98,12 @@
     <div>
       <button id="moins">-15s</button>
       <button id="plus">+15s</button>
-      <button id="stop">Passer</button>
+      <button id="stop">Skip</button>
     </div>
   </div>
 
   <script>
-    // ---------- OUTILS ----------
+    // ---------- HELPERS ----------
     const CLE_SEANCE = "training-seance-en-cours";
     const CLE_HISTO = "training-historique";
 
@@ -99,7 +116,7 @@
 
     function ecrire(cle, valeur) {
       try { localStorage.setItem(cle, JSON.stringify(valeur)); }
-      catch (e) { alert("Sauvegarde impossible sur ce téléphone."); }
+      catch (e) { alert("Unable to save on this device."); }
     }
 
     function esc(texte) {
@@ -107,7 +124,72 @@
         ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
-    // ---------- CHRONO DE REPOS ----------
+    // ---------- EXERCISE TYPES ----------
+    // force = kg + reps | reps = reps only | duree = seconds
+    const TYPES = { force: "Strength (kg × reps)", reps: "Reps only", duree: "Duration (sec)" };
+
+    function champs(type) {
+      if (type === "force") return [
+        { cle: "kg", label: "Kg", mode: "decimal" },
+        { cle: "reps", label: "Reps", mode: "numeric" }
+      ];
+      if (type === "duree") return [{ cle: "duree_s", label: "Sec", mode: "numeric" }];
+      return [{ cle: "reps", label: "Reps", mode: "numeric" }];
+    }
+
+    function nouvelleSerie(type, modele) {
+      if (type === "force") return { kg: modele?.kg ?? null, reps: modele?.reps ?? 8 };
+      if (type === "duree") return { duree_s: modele?.duree_s ?? 30 };
+      return { reps: modele?.reps ?? 10 };
+    }
+
+    function inputsSerie(type, s) {
+      return champs(type).map((f) =>
+        `<input type="number" step="any" inputmode="${f.mode}" data-cle="${f.cle}" placeholder="${f.label}" value="${esc(s[f.cle])}">`
+      ).join("");
+    }
+
+    function brancherInputs(ligne, s) {
+      ligne.querySelectorAll("input[data-cle]").forEach((inp) => {
+        inp.addEventListener("input", () => {
+          s[inp.dataset.cle] = inp.value === "" ? null : Number(inp.value);
+          sauver();
+        });
+      });
+    }
+
+    // Text for one set (also reads the old format with "charge")
+    function formatSerie(s) {
+      if (s.duree_s != null) return esc(s.duree_s) + " s";
+      if (s.kg != null) return esc(s.reps) + " × " + esc(s.kg) + " kg";
+      if (s.charge) return esc(s.reps) + " × " + esc(s.charge);
+      return esc(s.reps) + " reps";
+    }
+
+    function normaliser(w) {
+      for (const exo of w.exercices) {
+        if (!TYPES[exo.type]) exo.type = "reps";
+        exo.repos_s = exo.repos_s ?? 60;
+        exo.series = exo.series ?? [];
+      }
+      return w;
+    }
+
+    // Sets from the most recent saved workout containing the same exercise
+    function derniereFois(exo) {
+      if (!exo.id) return null;
+      const histo = lire(CLE_HISTO, []);
+      for (let i = histo.length - 1; i >= 0; i--) {
+        const m = (histo[i].exercices || []).find((e) => e.id === exo.id);
+        if (m) {
+          const faites = m.series.filter((s) => s.fait);
+          if (faites.length) return faites.map(formatSerie).join(" · ");
+        }
+      }
+      return null;
+    }
+
+    // ---------- REST TIMER ----------
     let finRepos = null;
     let intervalle = null;
     let wakeLock = null;
@@ -162,7 +244,7 @@
 
     function terminerRepos() {
       clearInterval(intervalle);
-      affichageTemps.textContent = "Go !";
+      affichageTemps.textContent = "Go!";
       barre.classList.add("fini");
       if (navigator.vibrate) navigator.vibrate([300, 150, 300]);
       bip();
@@ -180,47 +262,17 @@
     document.getElementById("moins").addEventListener("click", () => { finRepos -= 15000; tic(); });
     document.getElementById("stop").addEventListener("click", arreterRepos);
 
-    // ---------- SÉANCE EN COURS ----------
+    // ---------- CURRENT WORKOUT ----------
     let seance = lire(CLE_SEANCE, null);
+    if (seance && Array.isArray(seance.exercices)) normaliser(seance); else seance = null;
     let modeEdition = false;
 
     function sauver() { ecrire(CLE_SEANCE, seance); }
 
     function aujourdhui() { return new Date().toISOString().slice(0, 10); }
 
-    function nouvelleSerie(modele) {
-      return { reps: modele?.reps ?? 10, charge: modele?.charge ?? "poids du corps" };
-    }
-
     function nouvelExercice() {
-      return { id: "exo-" + Date.now(), nom: "Nouvel exercice", type: "reps", repos_s: 60, series: [nouvelleSerie()] };
-    }
-
-    function afficherSeance() {
-      const conteneur = document.getElementById("contenu-seance");
-      conteneur.innerHTML = "";
-
-      if (!seance) {
-        modeEdition = false;
-        conteneur.innerHTML = `<div class="vide">Aucune séance en cours.</div>`;
-        ajouterBouton(conteneur, "Charger la séance d'exemple", "", chargerExemple);
-        ajouterBouton(conteneur, "Créer une séance vide", "", () => {
-          seance = { nom: "Nouvelle séance", date: aujourdhui(), exercices: [nouvelExercice()] };
-          sauver();
-          modeEdition = true;
-          afficherSeance();
-        });
-        return;
-      }
-
-      ajouterBouton(conteneur, modeEdition ? "Terminer la modification" : "Modifier la séance",
-        modeEdition ? "principal" : "", () => {
-          modeEdition = !modeEdition;
-          afficherSeance();
-        });
-
-      if (modeEdition) afficherEdition(conteneur);
-      else afficherSaisie(conteneur);
+      return { id: "exo-" + Date.now(), nom: "New exercise", type: "force", repos_s: 90, series: [nouvelleSerie("force")] };
     }
 
     function ajouterBouton(parent, texte, classe, action) {
@@ -232,41 +284,87 @@
       return b;
     }
 
-    // ----- Mode saisie (pendant l'entraînement) -----
+    function afficherSeance() {
+      const conteneur = document.getElementById("contenu-seance");
+      conteneur.innerHTML = "";
+
+      if (!seance) {
+        modeEdition = false;
+        conteneur.innerHTML = `<div class="vide">No workout in progress.</div><div class="sous-titre">Choose a workout</div>`;
+        ajouterChoixSeances(conteneur);
+        ajouterBouton(conteneur, "Create an empty workout", "", () => {
+          seance = { nom: "New workout", date: aujourdhui(), exercices: [nouvelExercice()] };
+          sauver();
+          modeEdition = true;
+          afficherSeance();
+        });
+        return;
+      }
+
+      ajouterBouton(conteneur, modeEdition ? "Finish editing" : "Edit workout",
+        modeEdition ? "principal" : "", () => {
+          modeEdition = !modeEdition;
+          afficherSeance();
+        });
+
+      if (modeEdition) afficherEdition(conteneur);
+      else afficherSaisie(conteneur);
+    }
+
+    // The workouts listed in programme.json become buttons
+    async function ajouterChoixSeances(conteneur) {
+      try {
+        const reponse = await fetch("programme.json");
+        const prog = await reponse.json();
+        const zone = document.createElement("div");
+        for (const item of prog.seances) {
+          ajouterBouton(zone, item.titre, "principal", () => chargerFichier(item.fichier));
+        }
+        conteneur.insertBefore(zone, conteneur.children[2] || null);
+      } catch (e) {
+        conteneur.insertAdjacentHTML("beforeend", `<div class="vide">Could not load the program.</div>`);
+      }
+    }
+
+    async function chargerFichier(fichier) {
+      try {
+        const reponse = await fetch(fichier);
+        const w = normaliser(await reponse.json());
+        w.date = aujourdhui();
+        seance = w;
+        modeEdition = false;
+        sauver();
+        afficherSeance();
+      } catch (e) {
+        alert("Unable to load this workout.");
+      }
+    }
+
+    // ----- Logging mode (during the workout) -----
     function afficherSaisie(conteneur) {
       conteneur.insertAdjacentHTML("beforeend",
         `<h1>${esc(seance.nom)}</h1><div class="date">${esc(seance.date)}</div>`);
 
       for (const exo of seance.exercices) {
+        const t = exo.type;
+        const derniere = derniereFois(exo);
         const bloc = document.createElement("div");
         bloc.className = "exo";
         bloc.innerHTML = `
           <h2>${esc(exo.nom)}</h2>
-          <div class="repos">Repos : ${esc(exo.repos_s)} s</div>
-          <div class="labels">
-            <span style="width:110px">Charge</span>
-            <span style="width:70px">Reps</span>
-            <span style="width:70px">Douleur</span>
+          <div class="repos">Rest: ${esc(exo.repos_s)} s</div>
+          ${exo.note ? `<div class="note">${esc(exo.note)}</div>` : ""}
+          ${derniere ? `<div class="derniere">Last time: ${derniere}</div>` : ""}
+          <div class="labels t-${t}">
+            ${champs(t).map((f) => `<span>${f.label}</span>`).join("")}<span></span>
           </div>
         `;
 
         for (const s of exo.series) {
           const ligne = document.createElement("div");
-          ligne.className = "serie" + (s.fait ? " fait" : "");
-          ligne.innerHTML = `
-            <input class="charge" type="text" value="${esc(s.charge)}">
-            <input class="reps" type="number" value="${esc(s.reps)}">
-            <input class="douleur" type="number" min="0" max="10" placeholder="0-10" value="${esc(s.douleur)}">
-            <button>OK</button>
-          `;
-
-          ligne.querySelector(".charge").addEventListener("input", (e) => { s.charge = e.target.value; sauver(); });
-          ligne.querySelector(".reps").addEventListener("input", (e) => {
-            s.reps = e.target.value === "" ? null : Number(e.target.value); sauver();
-          });
-          ligne.querySelector(".douleur").addEventListener("input", (e) => {
-            s.douleur = e.target.value === "" ? null : Number(e.target.value); sauver();
-          });
+          ligne.className = "serie t-" + t + (s.fait ? " fait" : "");
+          ligne.innerHTML = inputsSerie(t, s) + "<button>OK</button>";
+          brancherInputs(ligne, s);
           ligne.querySelector("button").addEventListener("click", () => {
             s.fait = !s.fait;
             ligne.classList.toggle("fait", s.fait);
@@ -283,14 +381,14 @@
         conteneur.appendChild(bloc);
       }
 
-      ajouterBouton(conteneur, "Terminer la séance", "principal", terminerSeance);
+      ajouterBouton(conteneur, "Finish workout", "principal", terminerSeance);
     }
 
-    // ----- Mode modification -----
+    // ----- Edit mode -----
     function afficherEdition(conteneur) {
       const entete = document.createElement("div");
       entete.innerHTML = `
-        <input class="champ" type="text" id="edit-nom" value="${esc(seance.nom)}" placeholder="Nom de la séance">
+        <input class="champ" type="text" id="edit-nom" value="${esc(seance.nom)}" placeholder="Workout name">
         <input class="champ" type="date" id="edit-date" value="${esc(seance.date)}">
       `;
       entete.querySelector("#edit-nom").addEventListener("input", (e) => { seance.nom = e.target.value; sauver(); });
@@ -298,14 +396,14 @@
       conteneur.appendChild(entete);
 
       seance.exercices.forEach((exo, i) => {
+        const t = exo.type;
         const bloc = document.createElement("div");
         bloc.className = "exo";
 
-        // Ligne du haut : nom + déplacer + supprimer
         const haut = document.createElement("div");
         haut.className = "ligne-exo";
         haut.innerHTML = `
-          <input class="champ" type="text" value="${esc(exo.nom)}" placeholder="Nom de l'exercice">
+          <input class="champ" type="text" value="${esc(exo.nom)}" placeholder="Exercise name">
           <button class="mini" data-act="haut">↑</button>
           <button class="mini" data-act="bas">↓</button>
           <button class="mini danger" data-act="suppr">✕</button>
@@ -318,7 +416,7 @@
         btnHaut.addEventListener("click", () => deplacer(i, -1));
         btnBas.addEventListener("click", () => deplacer(i, 1));
         haut.querySelector('[data-act="suppr"]').addEventListener("click", () => {
-          if (confirm("Supprimer l'exercice « " + exo.nom + " » ?")) {
+          if (confirm('Delete the exercise "' + exo.nom + '"?')) {
             seance.exercices.splice(i, 1);
             sauver();
             afficherSeance();
@@ -326,28 +424,47 @@
         });
         bloc.appendChild(haut);
 
-        // Repos
+        // Exercise type
+        const select = document.createElement("select");
+        select.className = "champ";
+        for (const [valeur, libelle] of Object.entries(TYPES)) {
+          const o = document.createElement("option");
+          o.value = valeur; o.textContent = libelle; o.selected = valeur === t;
+          select.appendChild(o);
+        }
+        select.addEventListener("change", (e) => {
+          exo.type = e.target.value;
+          exo.series = exo.series.map((s) => nouvelleSerie(exo.type, s));
+          sauver();
+          afficherSeance();
+        });
+        bloc.appendChild(select);
+
+        // Rest + note
         const repos = document.createElement("div");
         repos.className = "repos-edit";
-        repos.innerHTML = `Repos (s) <input type="number" min="0" value="${esc(exo.repos_s)}">`;
+        repos.innerHTML = `Rest (s) <input type="number" inputmode="numeric" min="0" value="${esc(exo.repos_s)}">`;
         repos.querySelector("input").addEventListener("input", (e) => {
           exo.repos_s = e.target.value === "" ? 0 : Number(e.target.value); sauver();
         });
         bloc.appendChild(repos);
 
-        // Séries
+        const note = document.createElement("input");
+        note.className = "champ";
+        note.type = "text";
+        note.placeholder = "Note (optional)";
+        note.value = exo.note ?? "";
+        note.addEventListener("input", (e) => { exo.note = e.target.value; sauver(); });
+        bloc.appendChild(note);
+
+        bloc.insertAdjacentHTML("beforeend",
+          `<div class="labels edit t-${t}">${champs(t).map((f) => `<span>${f.label}</span>`).join("")}<span></span></div>`);
+
         exo.series.forEach((s, j) => {
           const ligne = document.createElement("div");
-          ligne.className = "serie";
-          ligne.innerHTML = `
-            <input class="charge" type="text" value="${esc(s.charge)}" placeholder="Charge">
-            <input class="reps" type="number" value="${esc(s.reps)}" placeholder="Reps">
-            <button class="mini danger">✕</button>
-          `;
-          ligne.querySelector(".charge").addEventListener("input", (e) => { s.charge = e.target.value; sauver(); });
-          ligne.querySelector(".reps").addEventListener("input", (e) => {
-            s.reps = e.target.value === "" ? null : Number(e.target.value); sauver();
-          });
+          ligne.className = "serie edit t-" + t;
+          ligne.innerHTML = inputsSerie(t, s) + `<button class="mini danger">✕</button>`;
+          brancherInputs(ligne, s);
           ligne.querySelector("button").addEventListener("click", () => {
             exo.series.splice(j, 1);
             sauver();
@@ -358,9 +475,9 @@
 
         const ajout = document.createElement("button");
         ajout.className = "mini";
-        ajout.textContent = "+ Ajouter une série";
+        ajout.textContent = "+ Add a set";
         ajout.addEventListener("click", () => {
-          exo.series.push(nouvelleSerie(exo.series[exo.series.length - 1]));
+          exo.series.push(nouvelleSerie(t, exo.series[exo.series.length - 1]));
           sauver();
           afficherSeance();
         });
@@ -369,14 +486,14 @@
         conteneur.appendChild(bloc);
       });
 
-      ajouterBouton(conteneur, "+ Ajouter un exercice", "", () => {
+      ajouterBouton(conteneur, "+ Add an exercise", "", () => {
         seance.exercices.push(nouvelExercice());
         sauver();
         afficherSeance();
       });
 
-      ajouterBouton(conteneur, "Supprimer toute la séance", "danger", () => {
-        if (confirm("Supprimer cette séance en cours (sans l'enregistrer dans l'historique) ?")) {
+      ajouterBouton(conteneur, "Delete the whole workout", "danger", () => {
+        if (confirm("Delete this workout in progress (without saving it to history)?")) {
           localStorage.removeItem(CLE_SEANCE);
           seance = null;
           modeEdition = false;
@@ -393,21 +510,10 @@
       afficherSeance();
     }
 
-    async function chargerExemple() {
-      try {
-        const reponse = await fetch("seance-exemple.json");
-        seance = await reponse.json();
-        sauver();
-        afficherSeance();
-      } catch (e) {
-        alert("Impossible de charger la séance d'exemple.");
-      }
-    }
-
     function terminerSeance() {
       const faites = seance.exercices.reduce((n, e) => n + e.series.filter((s) => s.fait).length, 0);
-      if (faites === 0 && !confirm("Aucune série validée. Terminer quand même ?")) return;
-      if (!confirm("Terminer et enregistrer cette séance dans l'historique ?")) return;
+      if (faites === 0 && !confirm("No set completed. Finish anyway?")) return;
+      if (!confirm("Finish and save this workout to history?")) return;
 
       const histo = lire(CLE_HISTO, []);
       histo.push({ ...seance, terminee_le: new Date().toISOString() });
@@ -417,10 +523,10 @@
       seance = null;
       arreterRepos();
       afficherSeance();
-      alert("Séance enregistrée dans l'historique.");
+      alert("Workout saved to history.");
     }
 
-    // ---------- IMPORT D'UNE SÉANCE ----------
+    // ---------- IMPORT ----------
     const champFichier = document.getElementById("fichier-import");
     document.getElementById("btn-import").addEventListener("click", () => champFichier.click());
 
@@ -432,29 +538,29 @@
         if (!donnees.nom || !Array.isArray(donnees.exercices)) throw new Error("format");
 
         const encours = seance && seance.exercices.some((e) => e.series.some((s) => s.fait));
-        if (encours && !confirm("Une séance avec des séries validées est en cours. La remplacer ?")) return;
+        if (encours && !confirm("A workout with completed sets is in progress. Replace it?")) return;
 
+        normaliser(donnees);
         for (const exo of donnees.exercices) {
-          exo.repos_s = exo.repos_s ?? 60;
-          exo.series = exo.series ?? [];
           for (const s of exo.series) s.fait = false;
         }
+        donnees.date = aujourdhui();
         seance = donnees;
         modeEdition = false;
         sauver();
         afficherSeance();
       } catch (e) {
-        alert("Fichier invalide : il doit contenir un nom et une liste d'exercices.");
+        alert("Invalid file: it must contain a name and a list of exercises.");
       }
       champFichier.value = "";
     });
 
-    // ---------- HISTORIQUE ----------
+    // ---------- HISTORY ----------
     function afficherHistorique() {
       const conteneur = document.getElementById("contenu-histo");
       const histo = lire(CLE_HISTO, []);
       if (histo.length === 0) {
-        conteneur.innerHTML = `<div class="vide">Aucune séance enregistrée pour l'instant.</div>`;
+        conteneur.innerHTML = `<div class="vide">No workout saved yet.</div>`;
         return;
       }
       conteneur.innerHTML = "";
@@ -464,13 +570,10 @@
         const bloc = document.createElement("div");
         bloc.className = "histo";
         let html = `<h3>${esc(h.nom)}</h3>
-          <div class="meta">${esc((h.terminee_le || "").slice(0, 10))} · ${faites}/${total} séries</div>`;
+          <div class="meta">${esc((h.terminee_le || "").slice(0, 10))} · ${faites}/${total} sets</div>`;
         for (const exo of h.exercices) {
-          const detail = exo.series
-            .filter((s) => s.fait)
-            .map((s) => `${esc(s.reps)} × ${esc(s.charge)}` + (s.douleur != null ? ` (douleur ${esc(s.douleur)})` : ""))
-            .join(" · ");
-          html += `<div class="ligne"><b>${esc(exo.nom)}</b><br><span class="detail">${detail || "non fait"}</span></div>`;
+          const detail = exo.series.filter((s) => s.fait).map(formatSerie).join(" · ");
+          html += `<div class="ligne"><b>${esc(exo.nom)}</b><br><span class="detail">${detail || "not done"}</span></div>`;
         }
         bloc.innerHTML = html;
         conteneur.appendChild(bloc);
@@ -479,11 +582,11 @@
 
     document.getElementById("btn-export").addEventListener("click", () => {
       const histo = lire(CLE_HISTO, []);
-      if (histo.length === 0) { alert("Rien à exporter pour l'instant."); return; }
+      if (histo.length === 0) { alert("Nothing to export yet."); return; }
       const contenu = JSON.stringify({ exporte_le: new Date().toISOString(), seances: histo }, null, 2);
       const lien = document.createElement("a");
       lien.href = URL.createObjectURL(new Blob([contenu], { type: "application/json" }));
-      lien.download = "historique-" + new Date().toISOString().slice(0, 10) + ".json";
+      lien.download = "history-" + new Date().toISOString().slice(0, 10) + ".json";
       lien.click();
       URL.revokeObjectURL(lien.href);
     });
@@ -504,7 +607,7 @@
       navHisto.classList.add("actif"); navSeance.classList.remove("actif");
     });
 
-    // ---------- DÉMARRAGE ----------
+    // ---------- START ----------
     afficherSeance();
 
     if ("serviceWorker" in navigator) {

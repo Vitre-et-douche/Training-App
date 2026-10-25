@@ -1,0 +1,162 @@
+{
+  "nom": "C - Lower: single-leg, pull & ankle",
+  "exercices": [
+    {
+      "id": "deadlift",
+      "nom": "Conventional deadlift",
+      "type": "force",
+      "repos_s": 180,
+      "note": "RPE 7-8, no grinding reps. Keep it 48 h away from your long run.",
+      "series": [
+        {
+          "reps": 5,
+          "kg": null
+        },
+        {
+          "reps": 5,
+          "kg": null
+        },
+        {
+          "reps": 5,
+          "kg": null
+        }
+      ]
+    },
+    {
+      "id": "reverse-lunge",
+      "nom": "Reverse lunge",
+      "type": "force",
+      "repos_s": 90,
+      "note": "Reps per leg. Barbell on back or vest (10 kg).",
+      "series": [
+        {
+          "reps": 8,
+          "kg": null
+        },
+        {
+          "reps": 8,
+          "kg": null
+        },
+        {
+          "reps": 8,
+          "kg": null
+        }
+      ]
+    },
+    {
+      "id": "step-up",
+      "nom": "Step-up (bench or stepper), loaded",
+      "type": "force",
+      "repos_s": 90,
+      "note": "Reps per leg. Drive through the heel, 3 s controlled descent (trains the downhills).",
+      "series": [
+        {
+          "reps": 10,
+          "kg": null
+        },
+        {
+          "reps": 10,
+          "kg": null
+        },
+        {
+          "reps": 10,
+          "kg": null
+        }
+      ]
+    },
+    {
+      "id": "chin-up",
+      "nom": "Chin-up",
+      "type": "force",
+      "repos_s": 120,
+      "note": "Kg = added weight (0 = bodyweight, vest = 10).",
+      "series": [
+        {
+          "reps": 6,
+          "kg": 0
+        },
+        {
+          "reps": 6,
+          "kg": 0
+        },
+        {
+          "reps": 6,
+          "kg": 0
+        },
+        {
+          "reps": 6,
+          "kg": 0
+        }
+      ]
+    },
+    {
+      "id": "sl-heel-raise",
+      "nom": "Single-leg heel raise",
+      "type": "reps",
+      "repos_s": 60,
+      "note": "Reps per leg. Test every 4 weeks: max consecutive reps, target 50.",
+      "series": [
+        {
+          "reps": 12
+        },
+        {
+          "reps": 12
+        },
+        {
+          "reps": 12
+        }
+      ]
+    },
+    {
+      "id": "inversion",
+      "nom": "Posterior tibial inversion (resistance band)",
+      "type": "reps",
+      "repos_s": 60,
+      "note": "Same band as session A.",
+      "series": [
+        {
+          "reps": 50
+        },
+        {
+          "reps": 50
+        }
+      ]
+    },
+    {
+      "id": "pogo",
+      "nom": "Pogo hops (short, stiff ankles)",
+      "type": "duree",
+      "repos_s": 45,
+      "note": "Light plyometrics: small, quick bounces on the forefoot.",
+      "series": [
+        {
+          "duree_s": 20
+        },
+        {
+          "duree_s": 20
+        },
+        {
+          "duree_s": 20
+        }
+      ]
+    },
+    {
+      "id": "ring-fallout",
+      "nom": "Ring fallout",
+      "type": "reps",
+      "repos_s": 60,
+      "note": "Hollow body, small range first.",
+      "series": [
+        {
+          "reps": 8
+        },
+        {
+          "reps": 8
+        },
+        {
+          "reps": 8
+        }
+      ]
+    }
+  ]
+}

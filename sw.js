@@ -1,8 +1,15 @@
-const NOM_CACHE = "muscu-v1";
-const FICHIERS = ["./", "./index.html", "./seance-exemple.json", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const NOM_CACHE = "muscu-v3";
+const FICHIERS = [
+  "./", "./index.html", "./manifest.json", "./programme.json",
+  "./seance-a.json", "./seance-b.json", "./seance-c.json",
+  "./icon-192.png", "./icon-512.png"
+];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(NOM_CACHE).then((c) => c.addAll(FICHIERS)));
+  // Each file is cached on its own: one missing file no longer blocks the install
+  e.waitUntil(
+    caches.open(NOM_CACHE).then((c) => Promise.all(FICHIERS.map((f) => c.add(f).catch(() => {}))))
+  );
   self.skipWaiting();
 });
 
@@ -15,7 +22,7 @@ self.addEventListener("activate", (e) => {
   self.clients.claim();
 });
 
-// Réseau d'abord (pour avoir la dernière version), cache si pas de connexion
+// Network first (always the latest version), cache when offline
 self.addEventListener("fetch", (e) => {
   e.respondWith(
     fetch(e.request)

@@ -1,0 +1,126 @@
+{
+  "nom": "A - Lower: squat & posterior chain",
+  "exercices": [
+    {
+      "id": "back-squat",
+      "nom": "Back squat",
+      "type": "force",
+      "repos_s": 180,
+      "note": "Heavy but clean: stop 1-2 reps before failure (RPE 7-8). Week 1: find your working weight.",
+      "series": [
+        {
+          "reps": 5,
+          "kg": null
+        },
+        {
+          "reps": 5,
+          "kg": null
+        },
+        {
+          "reps": 5,
+          "kg": null
+        },
+        {
+          "reps": 5,
+          "kg": null
+        }
+      ]
+    },
+    {
+      "id": "rdl",
+      "nom": "Romanian deadlift",
+      "type": "force",
+      "repos_s": 150,
+      "note": "Flat back, bar close to the legs, 3 s descent.",
+      "series": [
+        {
+          "reps": 8,
+          "kg": null
+        },
+        {
+          "reps": 8,
+          "kg": null
+        },
+        {
+          "reps": 8,
+          "kg": null
+        }
+      ]
+    },
+    {
+      "id": "bulgarian",
+      "nom": "Bulgarian split squat (rear foot on bench)",
+      "type": "force",
+      "repos_s": 90,
+      "note": "Reps per leg, same on both legs. Kg = total added load (vest 10 kg or barbell).",
+      "series": [
+        {
+          "reps": 8,
+          "kg": null
+        },
+        {
+          "reps": 8,
+          "kg": null
+        },
+        {
+          "reps": 8,
+          "kg": null
+        }
+      ]
+    },
+    {
+      "id": "calf-raise",
+      "nom": "Standing calf raise, loaded",
+      "type": "force",
+      "repos_s": 75,
+      "note": "Barbell on back or vest, toes on the stepper edge. 3 s down, 2 s pause at the bottom, full range.",
+      "series": [
+        {
+          "reps": 12,
+          "kg": null
+        },
+        {
+          "reps": 12,
+          "kg": null
+        },
+        {
+          "reps": 12,
+          "kg": null
+        }
+      ]
+    },
+    {
+      "id": "inversion",
+      "nom": "Posterior tibial inversion (resistance band)",
+      "type": "reps",
+      "repos_s": 60,
+      "note": "Yellow band to start. Target 100 reps total (2 x 50), build toward 200-300 over several weeks.",
+      "series": [
+        {
+          "reps": 50
+        },
+        {
+          "reps": 50
+        }
+      ]
+    },
+    {
+      "id": "plank",
+      "nom": "Plank",
+      "type": "duree",
+      "repos_s": 60,
+      "note": "Ribs down, glutes tight. Add the 10 kg vest once 60 s feels easy.",
+      "series": [
+        {
+          "duree_s": 45
+        },
+        {
+          "duree_s": 45
+        },
+        {
+          "duree_s": 45
+        }
+      ]
+    }
+  ]
+}
