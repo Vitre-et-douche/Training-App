@@ -7,8 +7,11 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#111111">
   <style>
-    body { font-family: system-ui, sans-serif; margin: 0; padding: 16px 16px 120px; background: #111; color: #eee; }
-    h1 { font-size: 1.3rem; margin: 0 0 4px; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 0 16px 120px; background: #111; color: #eee; }
+    nav { display: flex; gap: 8px; padding: 12px 0; position: sticky; top: 0; background: #111; z-index: 5; }
+    nav button { flex: 1; padding: 10px; border-radius: 8px; border: none; background: #222; color: #eee; font-size: 1rem; }
+    nav button.actif { background: #2e7d32; }
+    h1 { font-size: 1.3rem; margin: 8px 0 4px; }
     .date { color: #888; margin-bottom: 16px; }
     .exo { background: #1d1d1d; border-radius: 12px; padding: 12px; margin-bottom: 14px; }
     .exo h2 { font-size: 1.05rem; margin: 0 0 4px; }
@@ -21,8 +24,30 @@
                     color: #eee; font-size: 1rem; }
     .serie.fait button { background: #2e7d32; }
     .labels { color: #888; font-size: 0.75rem; display: flex; gap: 6px; }
+    .action { display: block; width: 100%; padding: 14px; margin: 10px 0; border-radius: 10px; border: none;
+              background: #333; color: #eee; font-size: 1rem; }
+    .action.principal { background: #2e7d32; }
+    .action.danger { background: #7d2e2e; }
+    .vide { color: #888; text-align: center; margin: 40px 0 20px; }
+    .histo { background: #1d1d1d; border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+    .histo h3 { margin: 0 0 2px; font-size: 1rem; }
+    .histo .meta { color: #888; font-size: 0.8rem; margin-bottom: 8px; }
+    .histo .ligne { font-size: 0.9rem; margin-bottom: 4px; }
+    .histo .detail { color: #aaa; }
+    #vue-historique { display: none; }
 
-    /* Barre du chrono */
+    /* Mode modification */
+    .champ { width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px; border: 1px solid #444;
+             background: #111; color: #eee; font-size: 1rem; margin-bottom: 8px; }
+    .ligne-exo { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+    .ligne-exo .champ { margin-bottom: 0; flex: 1; }
+    .mini { padding: 8px 10px; border-radius: 8px; border: none; background: #333; color: #eee; font-size: 1rem; }
+    .mini.danger { background: #7d2e2e; }
+    .mini:disabled { opacity: 0.3; }
+    .repos-edit { display: flex; align-items: center; gap: 8px; color: #888; font-size: 0.85rem; margin-bottom: 8px; }
+    .repos-edit input { width: 80px; padding: 8px; border-radius: 8px; border: 1px solid #444;
+                        background: #111; color: #eee; font-size: 1rem; }
+
     #chrono { position: fixed; left: 0; right: 0; bottom: 0; background: #222; border-top: 2px solid #444;
               padding: 12px 16px; display: none; align-items: center; justify-content: space-between; gap: 8px; }
     #chrono.actif { display: flex; }
@@ -33,9 +58,23 @@
   </style>
 </head>
 <body>
-  <h1 id="titre">Chargement...</h1>
-  <div class="date" id="date"></div>
-  <div id="exercices"></div>
+  <nav>
+    <button id="nav-seance" class="actif">Séance</button>
+    <button id="nav-histo">Historique</button>
+  </nav>
+
+  <!-- VUE SÉANCE -->
+  <div id="vue-seance">
+    <div id="contenu-seance"></div>
+    <button class="action" id="btn-import">Importer une séance (fichier JSON)</button>
+    <input type="file" id="fichier-import" accept=".json,application/json" style="display:none">
+  </div>
+
+  <!-- VUE HISTORIQUE -->
+  <div id="vue-historique">
+    <div id="contenu-histo"></div>
+    <button class="action" id="btn-export">Exporter l'historique (fichier JSON)</button>
+  </div>
 
   <div id="chrono">
     <div id="temps">0:00</div>
@@ -47,6 +86,27 @@
   </div>
 
   <script>
+    // ---------- OUTILS ----------
+    const CLE_SEANCE = "training-seance-en-cours";
+    const CLE_HISTO = "training-historique";
+
+    function lire(cle, defaut) {
+      try {
+        const v = localStorage.getItem(cle);
+        return v ? JSON.parse(v) : defaut;
+      } catch (e) { return defaut; }
+    }
+
+    function ecrire(cle, valeur) {
+      try { localStorage.setItem(cle, JSON.stringify(valeur)); }
+      catch (e) { alert("Sauvegarde impossible sur ce téléphone."); }
+    }
+
+    function esc(texte) {
+      return String(texte ?? "").replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
     // ---------- CHRONO DE REPOS ----------
     let finRepos = null;
     let intervalle = null;
@@ -65,7 +125,7 @@
     async function garderEcranAllume() {
       try {
         if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen");
-      } catch (e) { /* pas grave si ça échoue */ }
+      } catch (e) {}
     }
 
     function relacherEcran() {
@@ -96,11 +156,8 @@
 
     function tic() {
       const restant = Math.ceil((finRepos - Date.now()) / 1000);
-      if (restant <= 0) {
-        terminerRepos();
-      } else {
-        affichageTemps.textContent = formater(restant);
-      }
+      if (restant <= 0) terminerRepos();
+      else affichageTemps.textContent = formater(restant);
     }
 
     function terminerRepos() {
@@ -123,26 +180,69 @@
     document.getElementById("moins").addEventListener("click", () => { finRepos -= 15000; tic(); });
     document.getElementById("stop").addEventListener("click", arreterRepos);
 
-    // ---------- AFFICHAGE DE LA SÉANCE ----------
-    async function charger() {
-      const reponse = await fetch("seance-exemple.json");
-      const seance = await reponse.json();
-      afficher(seance);
+    // ---------- SÉANCE EN COURS ----------
+    let seance = lire(CLE_SEANCE, null);
+    let modeEdition = false;
+
+    function sauver() { ecrire(CLE_SEANCE, seance); }
+
+    function aujourdhui() { return new Date().toISOString().slice(0, 10); }
+
+    function nouvelleSerie(modele) {
+      return { reps: modele?.reps ?? 10, charge: modele?.charge ?? "poids du corps" };
     }
 
-    function afficher(seance) {
-      document.getElementById("titre").textContent = seance.nom;
-      document.getElementById("date").textContent = seance.date;
+    function nouvelExercice() {
+      return { id: "exo-" + Date.now(), nom: "Nouvel exercice", type: "reps", repos_s: 60, series: [nouvelleSerie()] };
+    }
 
-      const conteneur = document.getElementById("exercices");
+    function afficherSeance() {
+      const conteneur = document.getElementById("contenu-seance");
       conteneur.innerHTML = "";
+
+      if (!seance) {
+        modeEdition = false;
+        conteneur.innerHTML = `<div class="vide">Aucune séance en cours.</div>`;
+        ajouterBouton(conteneur, "Charger la séance d'exemple", "", chargerExemple);
+        ajouterBouton(conteneur, "Créer une séance vide", "", () => {
+          seance = { nom: "Nouvelle séance", date: aujourdhui(), exercices: [nouvelExercice()] };
+          sauver();
+          modeEdition = true;
+          afficherSeance();
+        });
+        return;
+      }
+
+      ajouterBouton(conteneur, modeEdition ? "Terminer la modification" : "Modifier la séance",
+        modeEdition ? "principal" : "", () => {
+          modeEdition = !modeEdition;
+          afficherSeance();
+        });
+
+      if (modeEdition) afficherEdition(conteneur);
+      else afficherSaisie(conteneur);
+    }
+
+    function ajouterBouton(parent, texte, classe, action) {
+      const b = document.createElement("button");
+      b.className = "action " + classe;
+      b.textContent = texte;
+      b.addEventListener("click", action);
+      parent.appendChild(b);
+      return b;
+    }
+
+    // ----- Mode saisie (pendant l'entraînement) -----
+    function afficherSaisie(conteneur) {
+      conteneur.insertAdjacentHTML("beforeend",
+        `<h1>${esc(seance.nom)}</h1><div class="date">${esc(seance.date)}</div>`);
 
       for (const exo of seance.exercices) {
         const bloc = document.createElement("div");
         bloc.className = "exo";
         bloc.innerHTML = `
-          <h2>${exo.nom}</h2>
-          <div class="repos">Repos : ${exo.repos_s} s</div>
+          <h2>${esc(exo.nom)}</h2>
+          <div class="repos">Repos : ${esc(exo.repos_s)} s</div>
           <div class="labels">
             <span style="width:110px">Charge</span>
             <span style="width:70px">Reps</span>
@@ -152,30 +252,264 @@
 
         for (const s of exo.series) {
           const ligne = document.createElement("div");
-          ligne.className = "serie";
+          ligne.className = "serie" + (s.fait ? " fait" : "");
           ligne.innerHTML = `
-            <input class="charge" type="text" value="${s.charge}">
-            <input type="number" value="${s.reps}">
-            <input type="number" min="0" max="10" placeholder="0-10">
+            <input class="charge" type="text" value="${esc(s.charge)}">
+            <input class="reps" type="number" value="${esc(s.reps)}">
+            <input class="douleur" type="number" min="0" max="10" placeholder="0-10" value="${esc(s.douleur)}">
             <button>OK</button>
           `;
+
+          ligne.querySelector(".charge").addEventListener("input", (e) => { s.charge = e.target.value; sauver(); });
+          ligne.querySelector(".reps").addEventListener("input", (e) => {
+            s.reps = e.target.value === "" ? null : Number(e.target.value); sauver();
+          });
+          ligne.querySelector(".douleur").addEventListener("input", (e) => {
+            s.douleur = e.target.value === "" ? null : Number(e.target.value); sauver();
+          });
           ligne.querySelector("button").addEventListener("click", () => {
-            ligne.classList.toggle("fait");
-            // Le chrono démarre seulement quand on VALIDE la série
-            if (ligne.classList.contains("fait")) {
+            s.fait = !s.fait;
+            ligne.classList.toggle("fait", s.fait);
+            if (s.fait) {
+              s.heure = new Date().toISOString();
               demarrerRepos(exo.repos_s);
+            } else {
+              delete s.heure;
             }
+            sauver();
           });
           bloc.appendChild(ligne);
         }
         conteneur.appendChild(bloc);
       }
+
+      ajouterBouton(conteneur, "Terminer la séance", "principal", terminerSeance);
     }
 
-    charger();
+    // ----- Mode modification -----
+    function afficherEdition(conteneur) {
+      const entete = document.createElement("div");
+      entete.innerHTML = `
+        <input class="champ" type="text" id="edit-nom" value="${esc(seance.nom)}" placeholder="Nom de la séance">
+        <input class="champ" type="date" id="edit-date" value="${esc(seance.date)}">
+      `;
+      entete.querySelector("#edit-nom").addEventListener("input", (e) => { seance.nom = e.target.value; sauver(); });
+      entete.querySelector("#edit-date").addEventListener("input", (e) => { seance.date = e.target.value; sauver(); });
+      conteneur.appendChild(entete);
+
+      seance.exercices.forEach((exo, i) => {
+        const bloc = document.createElement("div");
+        bloc.className = "exo";
+
+        // Ligne du haut : nom + déplacer + supprimer
+        const haut = document.createElement("div");
+        haut.className = "ligne-exo";
+        haut.innerHTML = `
+          <input class="champ" type="text" value="${esc(exo.nom)}" placeholder="Nom de l'exercice">
+          <button class="mini" data-act="haut">↑</button>
+          <button class="mini" data-act="bas">↓</button>
+          <button class="mini danger" data-act="suppr">✕</button>
+        `;
+        haut.querySelector("input").addEventListener("input", (e) => { exo.nom = e.target.value; sauver(); });
+        const btnHaut = haut.querySelector('[data-act="haut"]');
+        const btnBas = haut.querySelector('[data-act="bas"]');
+        btnHaut.disabled = i === 0;
+        btnBas.disabled = i === seance.exercices.length - 1;
+        btnHaut.addEventListener("click", () => deplacer(i, -1));
+        btnBas.addEventListener("click", () => deplacer(i, 1));
+        haut.querySelector('[data-act="suppr"]').addEventListener("click", () => {
+          if (confirm("Supprimer l'exercice « " + exo.nom + " » ?")) {
+            seance.exercices.splice(i, 1);
+            sauver();
+            afficherSeance();
+          }
+        });
+        bloc.appendChild(haut);
+
+        // Repos
+        const repos = document.createElement("div");
+        repos.className = "repos-edit";
+        repos.innerHTML = `Repos (s) <input type="number" min="0" value="${esc(exo.repos_s)}">`;
+        repos.querySelector("input").addEventListener("input", (e) => {
+          exo.repos_s = e.target.value === "" ? 0 : Number(e.target.value); sauver();
+        });
+        bloc.appendChild(repos);
+
+        // Séries
+        exo.series.forEach((s, j) => {
+          const ligne = document.createElement("div");
+          ligne.className = "serie";
+          ligne.innerHTML = `
+            <input class="charge" type="text" value="${esc(s.charge)}" placeholder="Charge">
+            <input class="reps" type="number" value="${esc(s.reps)}" placeholder="Reps">
+            <button class="mini danger">✕</button>
+          `;
+          ligne.querySelector(".charge").addEventListener("input", (e) => { s.charge = e.target.value; sauver(); });
+          ligne.querySelector(".reps").addEventListener("input", (e) => {
+            s.reps = e.target.value === "" ? null : Number(e.target.value); sauver();
+          });
+          ligne.querySelector("button").addEventListener("click", () => {
+            exo.series.splice(j, 1);
+            sauver();
+            afficherSeance();
+          });
+          bloc.appendChild(ligne);
+        });
+
+        const ajout = document.createElement("button");
+        ajout.className = "mini";
+        ajout.textContent = "+ Ajouter une série";
+        ajout.addEventListener("click", () => {
+          exo.series.push(nouvelleSerie(exo.series[exo.series.length - 1]));
+          sauver();
+          afficherSeance();
+        });
+        bloc.appendChild(ajout);
+
+        conteneur.appendChild(bloc);
+      });
+
+      ajouterBouton(conteneur, "+ Ajouter un exercice", "", () => {
+        seance.exercices.push(nouvelExercice());
+        sauver();
+        afficherSeance();
+      });
+
+      ajouterBouton(conteneur, "Supprimer toute la séance", "danger", () => {
+        if (confirm("Supprimer cette séance en cours (sans l'enregistrer dans l'historique) ?")) {
+          localStorage.removeItem(CLE_SEANCE);
+          seance = null;
+          modeEdition = false;
+          afficherSeance();
+        }
+      });
+    }
+
+    function deplacer(i, sens) {
+      const j = i + sens;
+      if (j < 0 || j >= seance.exercices.length) return;
+      [seance.exercices[i], seance.exercices[j]] = [seance.exercices[j], seance.exercices[i]];
+      sauver();
+      afficherSeance();
+    }
+
+    async function chargerExemple() {
+      try {
+        const reponse = await fetch("seance-exemple.json");
+        seance = await reponse.json();
+        sauver();
+        afficherSeance();
+      } catch (e) {
+        alert("Impossible de charger la séance d'exemple.");
+      }
+    }
+
+    function terminerSeance() {
+      const faites = seance.exercices.reduce((n, e) => n + e.series.filter((s) => s.fait).length, 0);
+      if (faites === 0 && !confirm("Aucune série validée. Terminer quand même ?")) return;
+      if (!confirm("Terminer et enregistrer cette séance dans l'historique ?")) return;
+
+      const histo = lire(CLE_HISTO, []);
+      histo.push({ ...seance, terminee_le: new Date().toISOString() });
+      ecrire(CLE_HISTO, histo);
+
+      localStorage.removeItem(CLE_SEANCE);
+      seance = null;
+      arreterRepos();
+      afficherSeance();
+      alert("Séance enregistrée dans l'historique.");
+    }
+
+    // ---------- IMPORT D'UNE SÉANCE ----------
+    const champFichier = document.getElementById("fichier-import");
+    document.getElementById("btn-import").addEventListener("click", () => champFichier.click());
+
+    champFichier.addEventListener("change", async () => {
+      const fichier = champFichier.files[0];
+      if (!fichier) return;
+      try {
+        const donnees = JSON.parse(await fichier.text());
+        if (!donnees.nom || !Array.isArray(donnees.exercices)) throw new Error("format");
+
+        const encours = seance && seance.exercices.some((e) => e.series.some((s) => s.fait));
+        if (encours && !confirm("Une séance avec des séries validées est en cours. La remplacer ?")) return;
+
+        for (const exo of donnees.exercices) {
+          exo.repos_s = exo.repos_s ?? 60;
+          exo.series = exo.series ?? [];
+          for (const s of exo.series) s.fait = false;
+        }
+        seance = donnees;
+        modeEdition = false;
+        sauver();
+        afficherSeance();
+      } catch (e) {
+        alert("Fichier invalide : il doit contenir un nom et une liste d'exercices.");
+      }
+      champFichier.value = "";
+    });
+
+    // ---------- HISTORIQUE ----------
+    function afficherHistorique() {
+      const conteneur = document.getElementById("contenu-histo");
+      const histo = lire(CLE_HISTO, []);
+      if (histo.length === 0) {
+        conteneur.innerHTML = `<div class="vide">Aucune séance enregistrée pour l'instant.</div>`;
+        return;
+      }
+      conteneur.innerHTML = "";
+      for (const h of [...histo].reverse()) {
+        const faites = h.exercices.reduce((n, e) => n + e.series.filter((s) => s.fait).length, 0);
+        const total = h.exercices.reduce((n, e) => n + e.series.length, 0);
+        const bloc = document.createElement("div");
+        bloc.className = "histo";
+        let html = `<h3>${esc(h.nom)}</h3>
+          <div class="meta">${esc((h.terminee_le || "").slice(0, 10))} · ${faites}/${total} séries</div>`;
+        for (const exo of h.exercices) {
+          const detail = exo.series
+            .filter((s) => s.fait)
+            .map((s) => `${esc(s.reps)} × ${esc(s.charge)}` + (s.douleur != null ? ` (douleur ${esc(s.douleur)})` : ""))
+            .join(" · ");
+          html += `<div class="ligne"><b>${esc(exo.nom)}</b><br><span class="detail">${detail || "non fait"}</span></div>`;
+        }
+        bloc.innerHTML = html;
+        conteneur.appendChild(bloc);
+      }
+    }
+
+    document.getElementById("btn-export").addEventListener("click", () => {
+      const histo = lire(CLE_HISTO, []);
+      if (histo.length === 0) { alert("Rien à exporter pour l'instant."); return; }
+      const contenu = JSON.stringify({ exporte_le: new Date().toISOString(), seances: histo }, null, 2);
+      const lien = document.createElement("a");
+      lien.href = URL.createObjectURL(new Blob([contenu], { type: "application/json" }));
+      lien.download = "historique-" + new Date().toISOString().slice(0, 10) + ".json";
+      lien.click();
+      URL.revokeObjectURL(lien.href);
+    });
+
+    // ---------- NAVIGATION ----------
+    const vueSeance = document.getElementById("vue-seance");
+    const vueHisto = document.getElementById("vue-historique");
+    const navSeance = document.getElementById("nav-seance");
+    const navHisto = document.getElementById("nav-histo");
+
+    navSeance.addEventListener("click", () => {
+      vueSeance.style.display = "block"; vueHisto.style.display = "none";
+      navSeance.classList.add("actif"); navHisto.classList.remove("actif");
+    });
+    navHisto.addEventListener("click", () => {
+      afficherHistorique();
+      vueSeance.style.display = "none"; vueHisto.style.display = "block";
+      navHisto.classList.add("actif"); navSeance.classList.remove("actif");
+    });
+
+    // ---------- DÉMARRAGE ----------
+    afficherSeance();
+
     if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
-}
+      navigator.serviceWorker.register("sw.js");
+    }
   </script>
 </body>
 </html>
